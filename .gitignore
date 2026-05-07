@@ -1,0 +1,83 @@
+# ─────────────────────────────────────────────────────────────
+# .gitignore — F1 Race Intelligence Dashboard
+# ─────────────────────────────────────────────────────────────
+# Files and folders listed here are NEVER committed to Git.
+# This keeps your repository clean and safe.
+# ─────────────────────────────────────────────────────────────
+
+# ── Python ────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ── Virtual Environments ──────────────────────────────────────
+# Never commit your virtual env — it's huge and machine-specific.
+# Others run: pip install -r requirements.txt  to recreate it.
+venv/
+.venv/
+env/
+.env_local
+
+# ── Environment Variables ─────────────────────────────────────
+# NEVER commit .env — it contains secrets (API keys, passwords).
+# Commit .env.example instead (with dummy values).
+.env
+*.env
+
+# ── FastF1 Cache ──────────────────────────────────────────────
+# Cache can be hundreds of MBs — don't commit it.
+# Each developer builds their own local cache.
+backend/cache/
+fastf1_cache/
+
+# ── Raw and Processed Data ────────────────────────────────────
+# Large CSV/parquet files should not be in Git.
+# Use Git LFS or a cloud bucket (S3, GCS) for large datasets.
+backend/data/raw/*
+backend/data/processed/*
+backend/data/exports/*
+# Keep the folders tracked (via .gitkeep)
+!backend/data/raw/.gitkeep
+!backend/data/processed/.gitkeep
+!backend/data/exports/.gitkeep
+
+# ── Trained ML Models ─────────────────────────────────────────
+# .pkl files can be very large. Store them in a model registry
+# (e.g., MLflow, HuggingFace Hub) rather than Git.
+backend/models/trained/*.pkl
+backend/models/trained/*.joblib
+!backend/models/trained/.gitkeep
+
+# ── pytest ────────────────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ── Node / React ──────────────────────────────────────────────
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+
+# ── IDEs & Editors ────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store           # macOS finder metadata
+Thumbs.db           # Windows thumbnail cache
+
+# ── Jupyter Notebooks ─────────────────────────────────────────
+# Checkpoint files are auto-generated noise
+.ipynb_checkpoints/
+notebooks/.ipynb_checkpoints/
+
+# ── Logs ──────────────────────────────────────────────────────
+*.log
+logs/
