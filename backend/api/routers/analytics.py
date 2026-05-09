@@ -441,19 +441,28 @@ def get_drivers():
     
     for row in driver_stats.to_dict(orient="records"):
         code = row["driver"]
-        meta = metadata.get(code, {
-            "full_name": code,
-            "number": 0,
-            "nationality": "Unknown",
-            "wdc_titles": 0,
-            "career_wins": row["wins"],
-            "career_podiums": row["podiums"],
-            "bio": "No biography available.",
-            "image_url": ""
-        })
+        meta = metadata.get(code, {})
         
-        # Combine computed telemetry with static metadata
-        merged = {**row, **meta}
+        # 2026 Grid Strategy:
+        # Prioritize metadata 'team' (Source of Truth for transfers) over CSV row 'team' (Historical)
+        team = meta.get("team") or row.get("team") or "Independent"
+        
+        # Default metadata if driver is not in drivers_metadata.json
+        full_meta = {
+            "full_name": meta.get("full_name", code),
+            "team": team,
+            "number": meta.get("number", 0),
+            "nationality": meta.get("nationality", "Unknown"),
+            "wdc_titles": meta.get("wdc_titles", 0),
+            "career_wins": meta.get("career_wins", row["wins"]),
+            "career_podiums": meta.get("career_podiums", row["podiums"]),
+            "bio": meta.get("bio", "No biography available."),
+            "image_url": meta.get("image_url", ""),
+            "timeline": meta.get("timeline", [])
+        }
+        
+        # Combine computed telemetry with 2026 identity
+        merged = {**row, **full_meta}
         stats_list.append(DriverStat(**merged))
 
     return DriversResponse(
