@@ -154,6 +154,28 @@ class DriverStat(BaseModel):
     image_url:   str      = Field(..., description="URL to headshot image")
     timeline:    list[TimelineItem] = Field(default_factory=list, description="Career history timeline")
 
+class DriverStanding(BaseModel):
+    """Current championship standing for a driver."""
+    position:  int   = Field(..., description="Championship position")
+    driver:    str   = Field(..., description="3-letter driver code")
+    full_name: str   = Field(..., description="Driver's full name")
+    team:      str   = Field(..., description="Driver's team")
+    points:    float = Field(..., description="Total championship points")
+    wins:      int   = Field(..., description="Total race wins in the season")
+
+class ConstructorStanding(BaseModel):
+    """Current championship standing for a constructor."""
+    position: int   = Field(..., description="Championship position")
+    team:     str   = Field(..., description="Team name")
+    points:   float = Field(..., description="Total constructor points")
+    wins:     int   = Field(..., description="Total race wins for the team")
+
+class StandingsResponse(BaseModel):
+    """Full championship standings for a season."""
+    year:         int                       = Field(..., description="Season year")
+    drivers:      list[DriverStanding]      = Field(..., description="Driver standings")
+    constructors: list[ConstructorStanding] = Field(..., description="Constructor standings")
+
 class DriversResponse(BaseModel):
     """Full response from GET /analytics/drivers."""
     total_drivers: int             = Field(..., description="Number of drivers in the dataset")
@@ -473,7 +495,95 @@ def get_drivers():
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# ENDPOINT 5 — POST /api/v1/analytics/refresh
+# ENDPOINT 6 — GET /api/v1/analytics/standings
+# ─────────────────────────────────────────────────────────────────────────────
+
+@router.get(
+    "/standings",
+    response_model=StandingsResponse,
+    summary="Get championship standings for a season",
+    tags=["Analytics"],
+)
+def get_standings(year: int = Query(2026, description="Season year")):
+    """
+    Calculates and returns the driver and constructor standings for a given year.
+    Uses the official F1 points system (25, 18, 15, 12, 10, 8, 6, 4, 2, 1).
+    """
+    df = _load_all_laps()
+    
+    # Filter by year
+    year_df = df[df["Year"] == year].copy()
+    if year_df.empty:
+        # If requested year is empty, fallback to the latest available year
+        latest_year = int(df["Year"].max())
+        year_df = df[df["Year"] == latest_year].copy()
+        year = latest_year
+
+    # 1. Get final positions per race
+    race_results = year_df.sort_values(["Round", "Driver", "LapNumber"]).groupby(
+        ["Round", "Circuit", "Driver", "Team"]
+    ).agg({
+        "Position": "last"
+    }).reset_index()
+
+    # 2. Points Mapping
+    POINTS_MAP = {1: 25, 2: 18, 3: 15, 4: 12, 5: 10, 6: 8, 7: 6, 8: 4, 9: 2, 10: 1}
+    race_results["Points"] = race_results["Position"].map(POINTS_MAP).fillna(0)
+    race_results["IsWin"] = (race_results["Position"] == 1).astype(int)
+
+    # 3. Aggregate Drivers
+    driver_standings = race_results.groupby(["Driver", "Team"]).agg({
+        "Points": "sum",
+        "IsWin": "sum"
+    }).reset_index()
+
+    # Merge with metadata for full names
+    metadata = _load_driver_metadata()
+    drivers_list = []
+    for row in driver_standings.to_dict(orient="records"):
+        code = row["Driver"]
+        meta = metadata.get(code, {})
+        drivers_list.append({
+            "driver": code,
+            "full_name": meta.get("full_name", code),
+            "team": meta.get("team") or row["Team"],
+            "points": float(row["Points"]),
+            "wins": int(row["IsWin"])
+        })
+
+    # Sort drivers (points DESC, then wins DESC)
+    drivers_list.sort(key=lambda x: (x["points"], x["wins"]), reverse=True)
+    for i, d in enumerate(drivers_list):
+        d["position"] = i + 1
+
+    # 4. Aggregate Constructors
+    constructor_standings = race_results.groupby("Team").agg({
+        "Points": "sum",
+        "IsWin": "sum"
+    }).reset_index()
+
+    constructors_list = []
+    for row in constructor_standings.to_dict(orient="records"):
+        constructors_list.append({
+            "team": row["Team"],
+            "points": float(row["Points"]),
+            "wins": int(row["IsWin"])
+        })
+
+    # Sort constructors (points DESC, then wins DESC)
+    constructors_list.sort(key=lambda x: (x["points"], x["wins"]), reverse=True)
+    for i, c in enumerate(constructors_list):
+        c["position"] = i + 1
+
+    return StandingsResponse(
+        year=year,
+        drivers=[DriverStanding(**d) for d in drivers_list],
+        constructors=[ConstructorStanding(**c) for c in constructors_list]
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ENDPOINT 7 — POST /api/v1/analytics/refresh
 # ─────────────────────────────────────────────────────────────────────────────
 
 @router.post(
