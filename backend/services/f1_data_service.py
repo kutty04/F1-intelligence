@@ -35,9 +35,13 @@ def load_session(year: int, gp: str, session_type: str) -> fastf1.core.Session:
         A loaded FastF1 Session object.
     """
     _ensure_cache()
-    session = fastf1.get_session(year, gp, session_type)
-    session.load(laps=True, telemetry=True, weather=True, messages=True)
-    return session
+    try:
+        session = fastf1.get_session(year, gp, session_type)
+        session.load(laps=True, telemetry=False, weather=False, messages=False)
+        return session
+    except Exception as e:
+        # If it's a future race or invalid name, provide a clear error
+        raise ValueError(f"Could not load session {year} {gp} {session_type}: {e}")
 
 
 def get_race_results(year: int, gp: str) -> pd.DataFrame:

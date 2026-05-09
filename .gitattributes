@@ -1,0 +1,21 @@
+# Normalize line endings: Windows CRLF → LF in the repo
+* text=auto
+
+# Explicitly keep these as LF
+*.py   text eol=lf
+*.js   text eol=lf
+*.jsx  text eol=lf
+*.ts   text eol=lf
+*.tsx  text eol=lf
+*.css  text eol=lf
+*.md   text eol=lf
+*.json text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
+
+# Binary files — never touch line endings
+*.png  binary
+*.jpg  binary
+*.svg  binary
+*.pkl  binary
+*.whl  binary

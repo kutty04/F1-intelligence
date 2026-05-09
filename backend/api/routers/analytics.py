@@ -14,6 +14,7 @@ Endpoints in this router:
   GET /api/v1/analytics/grid-stats        → pole-to-win % per circuit
   GET /api/v1/analytics/grid-stats/{circ} → one specific circuit
   GET /api/v1/analytics/summary           → overall dataset summary
+  GET /api/v1/analytics/drivers            → driver success statistics
 
 All endpoints mounted with prefix="/api/v1" in main.py.
 """
@@ -22,7 +23,7 @@ All endpoints mounted with prefix="/api/v1" in main.py.
 # IMPORTS
 # ─────────────────────────────────────────────────────────────────────────────
 
-from fastapi import APIRouter, HTTPException, Query  # FastAPI core tools
+from fastapi import APIRouter, HTTPException, Query, BackgroundTasks  # FastAPI core tools
 from pydantic import BaseModel, Field               # Response schema models
 from pathlib import Path                            # Cross-platform file paths
 from typing import Optional                         # For optional fields
@@ -52,6 +53,8 @@ router = APIRouter(prefix="/analytics")
 
 BACKEND_DIR    = Path(__file__).resolve().parent.parent.parent
 GRID_STATS_CSV = BACKEND_DIR / "data" / "processed" / "grid_win_stats.csv"
+ALL_LAPS_CSV   = BACKEND_DIR / "data" / "processed" / "all_laps.csv"
+DRIVERS_JSON   = BACKEND_DIR / "data" / "drivers_metadata.json"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -126,6 +129,38 @@ class SummaryResponse(BaseModel):
     circuits_above_50_pct: int = Field(..., description="Circuits where P1 wins more than 50% of the time")
 
 
+class TimelineItem(BaseModel):
+    """One historical event in a driver's career."""
+    year:  int    = Field(..., description="Year of the event")
+    event: str    = Field(..., description="Description of what happened")
+    type:  str    = Field(..., description="Type of event (win, champion, debut, move, milestone)")
+
+class DriverStat(BaseModel):
+    """Rich statistics and profile info for one driver."""
+    driver:      str      = Field(..., description="3-letter driver code")
+    full_name:   str      = Field(..., description="Driver's full name")
+    team:        str      = Field(..., description="Current/Main team name")
+    number:      int      = Field(..., description="Race number")
+    nationality: str      = Field(..., description="Nationality")
+    wdc_titles:  int      = Field(..., description="World Championship titles")
+    races:       int      = Field(..., description="Total races entered in dataset")
+    wins:        int      = Field(..., description="Season/Dataset wins")
+    podiums:     int      = Field(..., description="Season/Dataset podiums")
+    career_wins: int      = Field(..., description="Total career wins")
+    career_podiums: int   = Field(..., description="Total career podiums")
+    avg_finish:  float    = Field(..., description="Average finishing position")
+    best_finish: int      = Field(..., description="Best finishing position")
+    bio:         str      = Field(..., description="Short biography")
+    image_url:   str      = Field(..., description="URL to headshot image")
+    timeline:    list[TimelineItem] = Field(default_factory=list, description="Career history timeline")
+
+class DriversResponse(BaseModel):
+    """Full response from GET /analytics/drivers."""
+    total_drivers: int             = Field(..., description="Number of drivers in the dataset")
+    seasons:       list[int]       = Field(..., description="Seasons covered")
+    stats:         list[DriverStat]= Field(..., description="Per-driver statistics")
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # HELPER — Load and validate the CSV
 # ─────────────────────────────────────────────────────────────────────────────
@@ -171,6 +206,27 @@ def _load_grid_stats() -> pd.DataFrame:
     df = df.where(pd.notna(df), other=None)
 
     return df
+
+
+def _load_all_laps() -> pd.DataFrame:
+    """Load all_laps.csv and return a clean DataFrame."""
+    if not ALL_LAPS_CSV.exists():
+        raise HTTPException(
+            status_code=503,
+            detail=f"All laps file not found at {ALL_LAPS_CSV}. Run 'python -m backend.scripts.fetch_races' first."
+        )
+    df = pd.read_csv(ALL_LAPS_CSV)
+    df = df.where(pd.notna(df), other=None)
+    return df
+
+
+def _load_driver_metadata() -> dict:
+    """Load driver_metadata.json."""
+    import json
+    if not DRIVERS_JSON.exists():
+        return {}
+    with open(DRIVERS_JSON, "r") as f:
+        return json.load(f)
 
 
 def _interpret(win_pct: float) -> str:
@@ -248,7 +304,7 @@ def get_grid_stats(
     # FastAPI automatically serializes this Pydantic model to JSON.
     return GridStatsResponse(
         total_circuits=len(stats),
-        seasons=[2022, 2023, 2024],
+        seasons=[2022, 2023, 2024, 2025, 2026],
         sorted_by=sort_by,
         stats=stats,
     )
@@ -337,3 +393,104 @@ def get_summary():
         least_dominant=df.loc[least_idx, "Circuit"],
         circuits_above_50_pct=above_50,
     )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ENDPOINT 4 — GET /api/v1/analytics/drivers
+# ─────────────────────────────────────────────────────────────────────────────
+
+@router.get(
+    "/drivers",
+    response_model=DriversResponse,
+    summary="Get aggregated driver success statistics",
+    tags=["Analytics"],
+)
+def get_drivers():
+    """
+    Computes and returns career statistics for all drivers in the dataset.
+    Aggregates data from all_laps.csv.
+    """
+    df = _load_all_laps()
+    
+    # 1. Collapse to per-race-per-driver summary
+    # Final position is the position on the maximum LapNumber for that race
+    race_summary = df.sort_values(["Year", "Round", "Driver", "LapNumber"]).groupby(
+        ["Year", "Round", "Circuit", "Driver"]
+    ).agg({
+        "Position": "last",
+        "Team": "last"
+    }).reset_index()
+
+    # 2. Group by Driver to get aggregates
+    driver_stats = race_summary.groupby("Driver").agg({
+        "Team": "last",
+        "Position": ["count", lambda x: (x == 1).sum(), lambda x: (x <= 3).sum(), "mean", "min"]
+    }).reset_index()
+
+    # Rename columns for clarity
+    driver_stats.columns = [
+        "driver", "team", "races", "wins", "podiums", "avg_finish", "best_finish"
+    ]
+
+    # Sort by wins descending
+    driver_stats = driver_stats.sort_values(by=["wins", "podiums"], ascending=False)
+
+    # 3. Merge with metadata
+    metadata = _load_driver_metadata()
+    stats_list = []
+    
+    for row in driver_stats.to_dict(orient="records"):
+        code = row["driver"]
+        meta = metadata.get(code, {
+            "full_name": code,
+            "number": 0,
+            "nationality": "Unknown",
+            "wdc_titles": 0,
+            "career_wins": row["wins"],
+            "career_podiums": row["podiums"],
+            "bio": "No biography available.",
+            "image_url": ""
+        })
+        
+        # Combine computed telemetry with static metadata
+        merged = {**row, **meta}
+        stats_list.append(DriverStat(**merged))
+
+    return DriversResponse(
+        total_drivers=len(stats_list),
+        seasons=sorted(df["Year"].unique().tolist()),
+        stats=stats_list
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ENDPOINT 5 — POST /api/v1/analytics/refresh
+# ─────────────────────────────────────────────────────────────────────────────
+
+@router.post(
+    "/refresh",
+    summary="Trigger a full data refresh",
+    description="Starts a background process to fetch new race data, update grid stats, and retrain the ML model.",
+    tags=["Admin"],
+)
+def refresh_data(background_tasks: BackgroundTasks):
+    """
+    Triggers the data pipeline in the background.
+    Returns immediately so the UI doesn't hang.
+    """
+    import subprocess
+    import sys
+
+    def run_pipeline():
+        print("Starting background data refresh...")
+        # 1. Fetch races
+        subprocess.run([sys.executable, "-m", "backend.scripts.fetch_races"], check=True)
+        # 2. Analyze grid
+        subprocess.run([sys.executable, "-m", "backend.scripts.analyze_grid"], check=True)
+        # 3. Train model
+        subprocess.run([sys.executable, "-m", "backend.scripts.train_model"], check=True)
+        print("Background data refresh completed!")
+
+    background_tasks.add_task(run_pipeline)
+    
+    return {"message": "Data refresh started in the background. This may take 15-60 minutes."}

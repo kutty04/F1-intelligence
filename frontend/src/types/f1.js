@@ -79,6 +79,8 @@ export const TEAM_COLORS = {
   "Alfa Romeo":        "#c92d4b",
   "Haas F1 Team":      "#b6babd",
   "Sauber":            "#00e701",
+  "Audi":              "#f5f5f5",
+  "Cadillac":          "#1a1a1a",
 };
 
 // Format a float seconds value → human-readable "M:SS.mmm"

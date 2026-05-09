@@ -24,23 +24,74 @@
  */
 
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { Navbar }           from "./components/ui/Navbar.jsx";
+import { useState, useEffect } from "react";
+import { TopBar }           from "./components/ui/TopBar.jsx";
+import { Sidebar }          from "./components/ui/Sidebar.jsx";
+import { StrategistDrawer } from "./components/ui/StrategistDrawer.jsx";
+import { WelcomeTour }      from "./components/ui/WelcomeTour.jsx";
+import { GlobalSearch }     from "./components/ui/GlobalSearch.jsx";
 import { DashboardPage }    from "./pages/DashboardPage.jsx";
 import { GridAnalysisPage } from "./pages/GridAnalysisPage.jsx";
+import { DriversPage }      from "./pages/DriversPage.jsx";
+import { LapDataPage }      from "./pages/LapDataPage.jsx";
+import { PredictionsPage }  from "./pages/PredictionsPage.jsx";
+import { ComparisonPage }   from "./pages/ComparisonPage.jsx";
+import { PitWallPage }     from "./pages/PitWallPage.jsx";
+import { PredictorPage }   from "./pages/PredictorPage.jsx";
+import { StandingsPage }   from "./pages/StandingsPage.jsx";
 import "./App.css";
 
 function App() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isAiOpen, setIsAiOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isTrackMode, setIsTrackMode] = useState(false);
+
+  // Force Browser Tab Title
+  useEffect(() => {
+    document.title = "F1 Intelligence Dashboard";
+  }, []);
+
+  // Toggle Track Mode (High Contrast)
+  useEffect(() => {
+    if (isTrackMode) {
+      document.body.classList.add("track-mode");
+    } else {
+      document.body.classList.remove("track-mode");
+    }
+  }, [isTrackMode]);
+
+  // Ctrl+K shortcut
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+        e.preventDefault();
+        setIsSearchOpen(prev => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   return (
-    // BrowserRouter must wrap everything that uses routing
     <BrowserRouter>
-      {/* Global layout wrapper */}
       <div className="app-shell">
+        <Sidebar isOpen={true} onClose={() => {}} isPersistent={true} />
+        
+        <div className="main-container">
+          <TopBar 
+            onMenuClick={() => {}}
+            onSearchClick={() => setIsSearchOpen(true)}
+            onAiClick={() => setIsAiOpen(true)}
+            isTrackMode={isTrackMode}
+            onTrackModeToggle={() => setIsTrackMode(!isTrackMode)}
+          />
 
-        {/* Navbar renders on EVERY page — defined once here */}
-        <Navbar />
+          <StrategistDrawer isOpen={isAiOpen} onClose={() => setIsAiOpen(false)} />
+          <GlobalSearch isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+          <WelcomeTour />
 
-        {/* Main content area — changes based on the URL */}
-        <main className="main-content">
+          <main className="main-content">
           <Routes>
             {/* Route 1 — Dashboard (home page) */}
             <Route path="/"               element={<DashboardPage />}    />
@@ -48,19 +99,35 @@ function App() {
             {/* Route 2 — Grid Win Analysis */}
             <Route path="/grid-analysis"  element={<GridAnalysisPage />} />
 
-            {/* Route 3 — Lap Data Explorer (placeholder for next step) */}
-            <Route path="/lap-data"       element={<PlaceholderPage title="Lap Data Explorer" />} />
+            {/* Route 3 — Driver Analytics */}
+            <Route path="/drivers"        element={<DriversPage />} />
 
-            {/* Route 4 — ML Predictions (placeholder for next step) */}
-            <Route path="/predictions"    element={<PlaceholderPage title="Lap Time Predictor" />} />
+            {/* Route 4 — Lap Data Explorer */}
+            <Route path="/lap-data"       element={<LapDataPage />} />
+
+            {/* Route 5 — ML Predictions */}
+            <Route path="/predictions"    element={<PredictionsPage />} />
+
+            {/* Route 6 — Comparison Mode */}
+            <Route path="/comparison"     element={<ComparisonPage />} />
+
+            {/* Route 7 — Grid Predictor */}
+            <Route path="/predictor"      element={<PredictorPage />} />
+
+            {/* Route 8 — Pit Wall View */}
+            <Route path="/pit-wall"       element={<PitWallPage />} />
+
+            {/* Route 9 — Season Standings */}
+            <Route path="/standings"      element={<StandingsPage />} />
 
             {/* Catch-all: redirect any unknown URL back to home */}
             <Route path="*"               element={<Navigate to="/" replace />} />
           </Routes>
         </main>
       </div>
-    </BrowserRouter>
-  );
+    </div>
+  </BrowserRouter>
+);
 }
 
 // ── Placeholder Page ─────────────────────────────────────────────────────────

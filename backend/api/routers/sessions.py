@@ -12,8 +12,24 @@ Endpoints:
 
 from fastapi import APIRouter, HTTPException
 from services.f1_data_service import get_race_results
+from utils.data_helpers import safe_to_records
 
 router = APIRouter()
+
+@router.get("/sessions/schedule/{year}")
+def get_schedule(year: int):
+    """Return the event schedule for a given year."""
+    try:
+        import fastf1
+        schedule = fastf1.get_event_schedule(year)
+        # Filter out testing
+        schedule = schedule[schedule["RoundNumber"] > 0]
+        return {
+            "year": year,
+            "events": schedule[["RoundNumber", "EventName", "Country", "Location"]].to_dict("records")
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/sessions/{year}/{gp}/results")
@@ -26,8 +42,8 @@ def race_results(year: int, gp: str):
     """
     try:
         df = get_race_results(year, gp)
-        # Convert DataFrame → list of dicts so FastAPI can JSON-serialize it
-        return {"year": year, "gp": gp, "results": df.to_dict(orient="records")}
+        return {"year": year, "gp": gp, "results": safe_to_records(df)}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        # Return a proper HTTP 500 error if anything goes wrong
         raise HTTPException(status_code=500, detail=str(e))

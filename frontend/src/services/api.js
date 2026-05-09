@@ -159,4 +159,38 @@ export const fetchGridWinStats = () =>
 export const predictLapTime = (payload) =>
   apiClient.post("/predictions/lap-time", payload);
 
+/**
+ * Fetch career success statistics for all drivers.
+ *
+ * @returns {Promise<DriversResponse>}
+ *
+ * Maps to: GET /api/v1/analytics/drivers
+ */
+export const fetchDriverStats = () =>
+  apiClient.get("/analytics/drivers");
+
+/**
+ * Fetch detailed stats for a specific driver.
+ *
+ * @param {string} driver - 3-letter code
+ * @returns {Promise<DriverDetailResponse>}
+ *
+ * Maps to: GET /api/v1/analytics/drivers/{driver}
+ */
+export const fetchSchedule = (year) =>
+  apiClient.get(`/sessions/schedule/${year}`);
+
+export const fetchDriverDetail = (driver) =>
+  apiClient.get(`/analytics/drivers/${driver}`);
+
+/**
+ * Trigger a background data refresh (fetch + analyze + train).
+ *
+ * @returns {Promise<{message: string}>}
+ *
+ * Maps to: POST /api/v1/analytics/refresh
+ */
+export const triggerDataRefresh = () =>
+  apiClient.post("/analytics/refresh");
+
 export default apiClient;

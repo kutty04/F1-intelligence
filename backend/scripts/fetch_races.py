@@ -66,7 +66,7 @@ log = logging.getLogger("fetch_races")
 # ─────────────────────────────────────────────────────────────────────────────
 
 # Which seasons to download
-SEASONS = [2022, 2023, 2024]
+SEASONS = [2022, 2023, 2024, 2025, 2026]
 
 # Resolve paths relative to THIS file's location so the script works
 # regardless of which directory you run it from.
@@ -160,16 +160,14 @@ def get_race_schedule(year: int) -> pd.DataFrame:
     Returns:
         DataFrame with one row per race weekend.
     """
-    log.info(f"  Fetching {year} season schedule...")
     schedule = fastf1.get_event_schedule(year, include_testing=False)
 
-    # Filter to standard race weekends only
-    # Sprint weekends have a different session structure — we'll handle
-    # them the same way (just load the Sunday "Race" session).
-    conventional = schedule[schedule["EventFormat"] == "conventional"].copy()
+    # We want ALL race weekends (Conventional + Sprint). 
+    # FastF1 identifies non-testing events as having a RoundNumber > 0.
+    races = schedule[schedule["RoundNumber"] > 0].copy()
 
-    log.info(f"  Found {len(conventional)} conventional race weekends in {year}.")
-    return conventional
+    log.info(f"  Found {len(races)} race weekends in {year}.")
+    return races
 
 
 def timedelta_to_seconds(series: pd.Series) -> pd.Series:

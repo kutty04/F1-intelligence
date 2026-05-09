@@ -9,7 +9,60 @@ it belongs here.
 """
 
 import pandas as pd
+import numpy as np
+import math
 from typing import Optional
+
+
+def clean_for_json(value):
+    """
+    Recursively clean a Python value for JSON serialization.
+
+    Problem: pandas and numpy produce NaN, Inf, -Inf, and numpy int/float
+    types that Python's json module can't serialize.
+
+    Solution: convert them all to JSON-safe Python types.
+
+    Works on: single values, dicts, lists, nested structures.
+    """
+    if isinstance(value, dict):
+        return {k: clean_for_json(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [clean_for_json(v) for v in value]
+    if isinstance(value, float) and (math.isnan(value) or math.isinf(value)):
+        return None
+    if isinstance(value, (np.integer,)):
+        return int(value)
+    if isinstance(value, (np.floating,)):
+        v = float(value)
+        return None if math.isnan(v) or math.isinf(v) else v
+    if isinstance(value, (np.bool_,)):
+        return bool(value)
+    if isinstance(value, pd.Timestamp):
+        return value.isoformat()
+    if isinstance(value, pd.Timedelta):
+        return value.total_seconds()
+    if value is pd.NaT:
+        return None
+    return value
+
+
+def safe_to_records(df: pd.DataFrame) -> list[dict]:
+    """
+    Convert a DataFrame to a list of dicts, safe for JSON serialization.
+
+    This is the ONLY function that should be used when converting
+    DataFrames to JSON responses in the API routers.
+
+    Replaces:  df.to_dict(orient="records")  ← crashes on NaN!
+    Use this:  safe_to_records(df)            ← always safe
+
+    Steps:
+      1. df.to_dict("records") → list of dicts (fast, native pandas)
+      2. clean_for_json()      → recursively fix NaN/Inf/numpy types
+    """
+    records = df.to_dict(orient="records")
+    return clean_for_json(records)
 
 
 def timedelta_to_seconds(series: pd.Series) -> pd.Series:

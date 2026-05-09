@@ -79,7 +79,4 @@ export function useGridWinStats() {
  * Convenience hook for grid win stats.
  * Pre-wired so components don't need to know the function signature.
  */
-export function useGridWinStats() {
-  const { fetchGridWinStats } = await import("../services/api.js");
-  return useApiData(fetchGridWinStats, [], []);
 }

@@ -14,22 +14,19 @@
  *   DashboardPage (fetches) → passes data down as props → child components render
  *   Children NEVER fetch — they only receive and display.
  */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { StatCard }      from "../components/ui/StatCard.jsx";
 import { LoadingSpinner } from "../components/ui/LoadingSpinner.jsx";
 import { ErrorBanner }   from "../components/ui/ErrorBanner.jsx";
 import { LapTimeChart }  from "../components/charts/LapTimeChart.jsx";
+import { CircuitMap }    from "../components/charts/CircuitMap.jsx";
+import { WeatherStation } from "../components/ui/WeatherStation.jsx";
 import { useLapData, useFastestLap } from "../hooks/useLapData.js";
 import { formatLapTime } from "../types/f1.js";
+import { triggerDataRefresh, fetchSchedule } from "../services/api.js";
 
 // Available races for the selector dropdowns
-const YEARS = [2024, 2023, 2022];
-const GPS   = [
-  "Bahrain", "Saudi Arabia", "Australia", "Japan", "China",
-  "Miami", "Monaco", "Canada", "Spain", "Austria",
-  "British", "Hungarian", "Belgian", "Dutch", "Italian",
-  "Singapore", "United States", "Mexico City", "São Paulo", "Abu Dhabi",
-];
+const YEARS = [2026, 2025, 2024, 2023, 2022];
 
 // Top 5 drivers to show by default in the lap time chart
 const DEFAULT_DRIVERS = ["VER", "HAM", "LEC", "SAI", "PER"];
@@ -38,8 +35,41 @@ export function DashboardPage() {
   // ── Local state for selectors ──────────────────────────────────────────
   // useState() returns [currentValue, setterFn]
   // When setter is called, React re-renders the component.
-  const [year, setYear] = useState(2024);
-  const [gp,   setGp]   = useState("Bahrain");
+  const [year, setYear] = useState(2026);
+  const [gp,   setGp]   = useState("Australian Grand Prix");
+  const [availableGps, setAvailableGps] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Fetch schedule when year changes
+  useEffect(() => {
+    const loadSchedule = async () => {
+      try {
+        const response = await fetchSchedule(year);
+        const names = response.events.map(e => e.EventName);
+        setAvailableGps(names);
+        // If current GP is not in new list, pick the first one
+        if (!names.includes(gp)) {
+          setGp(names[0] || "");
+        }
+      } catch (err) {
+        console.error("Failed to load schedule", err);
+      }
+    };
+    loadSchedule();
+  }, [year]);
+
+  const handleRefresh = async () => {
+    if (!window.confirm("Start full data refresh? This will take 15-60 minutes in the background.")) return;
+    setRefreshing(true);
+    try {
+      const res = await triggerDataRefresh();
+      alert(res.message);
+    } catch (err) {
+      alert("Refresh failed: " + err.message);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   // ── Fetch data using custom hooks ──────────────────────────────────────
   // These hooks internally call useEffect + useState.
@@ -56,9 +86,12 @@ export function DashboardPage() {
 
       {/* ── Page header ──────────────────────────────────────────────── */}
       <div style={styles.header}>
-        <div>
-          <h1 style={styles.title}>Race Dashboard</h1>
-          <p style={styles.subtitle}>Lap-by-lap analysis and key statistics</p>
+        <div style={{ display: "flex", alignItems: "center", gap: "32px" }}>
+          <div>
+            <h1 style={styles.title}>Race Dashboard</h1>
+            <p style={styles.subtitle}>Lap-by-lap analysis and key statistics</p>
+          </div>
+          <WeatherStation year={year} gp={gp} />
         </div>
 
         {/* Race selector controls */}
@@ -76,8 +109,23 @@ export function DashboardPage() {
             onChange={(e) => setGp(e.target.value)}
             style={styles.select}
           >
-            {GPS.map((g) => <option key={g} value={g}>{g}</option>)}
+            {availableGps.map((g) => <option key={g} value={g}>{g}</option>)}
           </select>
+
+          <button 
+            onClick={handleRefresh} 
+            disabled={refreshing}
+            style={{ 
+              ...styles.select, 
+              backgroundColor: refreshing ? "#333" : "#e10600", 
+              color: "#fff", 
+              fontWeight: 700,
+              border: "none",
+              padding: "8px 16px"
+            }}
+          >
+            {refreshing ? "Refreshing..." : "Refresh Data"}
+          </button>
         </div>
       </div>
 
@@ -118,16 +166,27 @@ export function DashboardPage() {
             />
           </div>
 
-          {/* Lap Time Chart */}
-          <div style={styles.chartCard}>
-            <h2 style={styles.chartTitle}>
-              Lap Time Evolution — Top 5 Drivers
-            </h2>
-            <p style={styles.chartSub}>
-              Each line represents one driver's lap times over the race distance.
-              Gaps in the line = pit stop or missing data.
-            </p>
-            <LapTimeChart laps={laps} drivers={DEFAULT_DRIVERS} />
+          {/* Analysis Grid */}
+          <div style={styles.analysisGrid}>
+            {/* Lap Time Chart */}
+            <div style={styles.chartCard}>
+              <h2 style={styles.chartTitle}>
+                Lap Time Evolution — Top 5 Drivers
+              </h2>
+              <p style={styles.chartSub}>
+                Each line represents one driver's lap times over the race distance.
+              </p>
+              <LapTimeChart laps={laps} drivers={DEFAULT_DRIVERS} />
+            </div>
+
+            {/* Circuit Map */}
+            <div style={styles.chartCard}>
+              <h2 style={styles.chartTitle}>Circuit Layout</h2>
+              <p style={styles.chartSub}>Animated track map with DRS zones.</p>
+              <div style={{ height: "400px" }}>
+                <CircuitMap gpName={gp} />
+              </div>
+            </div>
           </div>
         </>
       )}
@@ -146,4 +205,10 @@ const styles = {
   chartCard:  { backgroundColor: "#1a1a2e", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.07)", padding: "24px" },
   chartTitle: { margin: "0 0 4px", fontSize: "18px", fontWeight: 600, color: "#f0f0f0" },
   chartSub:   { margin: "0 0 20px", color: "#777", fontSize: "13px" },
+  analysisGrid: {
+    display: "grid",
+    gridTemplateColumns: "1.5fr 1fr",
+    gap: "24px",
+    alignItems: "start"
+  },
 };

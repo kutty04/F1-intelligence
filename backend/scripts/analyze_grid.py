@@ -263,19 +263,19 @@ def sort_and_print(stats: pd.DataFrame) -> pd.DataFrame:
 
     # ── Print header ──────────────────────────────────────────────────────
     header = (
-        f"\n{'─' * 68}\n"
+        f"\n{'-' * 68}\n"
         f"  {'#':<4} {'Circuit':<35} {'WinPct':>7}  {'Summary'}\n"
-        f"{'─' * 68}"
+        f"{'-' * 68}"
     )
     print(header)
 
     # ── Print one row per circuit ─────────────────────────────────────────
     # iterrows() gives us (index, row) pairs — useful for formatted printing
     for rank, row in sorted_stats.iterrows():
-        # Build a simple bar chart out of Unicode block characters
-        # Each full block (█) = 10 percentage points
+        # Build a simple bar chart out of ASCII characters
+        # Each # = 10 percentage points
         bar_length = int(row["WinPct"] / 10)         # 0–10 blocks
-        bar = "█" * bar_length + "░" * (10 - bar_length)
+        bar = "#" * bar_length + "." * (10 - bar_length)
 
         print(
             f"  {rank + 1:<4}"
@@ -285,7 +285,7 @@ def sort_and_print(stats: pd.DataFrame) -> pd.DataFrame:
             f"  {bar}"
         )
 
-    print(f"{'─' * 68}\n")
+    print(f"{'-' * 68}\n")
 
     return sorted_stats
 
@@ -318,7 +318,7 @@ def print_bonus_stats(race_summary: pd.DataFrame) -> None:
     #            what % won? Same for P2, P3, P4, P5?"
     print("\n  Win rate by starting grid position (all circuits combined):")
     print(f"  {'Position':<12} {'Starts':>7}  {'Wins':>6}  {'WinPct':>7}")
-    print(f"  {'─' * 38}")
+    print(f"  {'-' * 38}")
 
     for grid_pos in range(1, 6):   # Loop P1 through P5
         # Filter to drivers who started from this grid position
@@ -331,7 +331,7 @@ def print_bonus_stats(race_summary: pd.DataFrame) -> None:
     # ── Bonus B: Season-by-season P1 win rate ────────────────────────────
     print("\n  P1-starter win rate by season:")
     print(f"  {'Year':<8} {'Starts':>7}  {'Wins':>6}  {'WinPct':>7}")
-    print(f"  {'─' * 32}")
+    print(f"  {'-' * 32}")
 
     pole_sitters = race_summary[race_summary["GridPosition"] == 1]
 

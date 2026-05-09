@@ -1,0 +1,162 @@
+{
+  "VER": {
+    "full_name": "Max Verstappen",
+    "number": 33,
+    "nationality": "Dutch",
+    "wdc_titles": 4,
+    "career_wins": 71,
+    "career_podiums": 127,
+    "bio": "The dominant force in modern F1, known for relentless pace and precision.",
+    "image_url": "https://media.formula1.com/content/dam/fom-website/drivers/M/MAXVER01_Max_Verstappen/maxver01.png.transform/2col/image.png",
+    "timeline": [
+      { "year": 2024, "event": "4th Consecutive World Title", "type": "champion" },
+      { "year": 2021, "event": "Maiden World Championship", "type": "champion" },
+      { "year": 2016, "event": "Youngest Ever Race Winner (Spain)", "type": "win" },
+      { "year": 2015, "event": "Youngest F1 Debut (17 years)", "type": "debut" }
+    ]
+  },
+  "HAM": {
+    "full_name": "Lewis Hamilton",
+    "number": 44,
+    "nationality": "British",
+    "wdc_titles": 7,
+    "career_wins": 105,
+    "career_podiums": 203,
+    "bio": "Statistical GOAT of F1, continuing his legacy with a legendary move to Ferrari.",
+    "image_url": "https://media.formula1.com/content/dam/fom-website/drivers/L/LEWHAM01_Lewis_Hamilton/lewham01.png.transform/2col/image.png",
+    "timeline": [
+      { "year": 2025, "event": "Historic Ferrari Move", "type": "move" },
+      { "year": 2024, "event": "Emotional Win at Silverstone", "type": "win" },
+      { "year": 2014, "event": "First Mercedes World Title", "type": "champion" },
+      { "year": 2008, "event": "Youngest Champion (at the time)", "type": "champion" }
+    ]
+  },
+  "NOR": {
+    "full_name": "Lando Norris",
+    "number": 1,
+    "nationality": "British",
+    "wdc_titles": 1,
+    "career_wins": 11,
+    "career_podiums": 44,
+    "bio": "The reigning 2025 World Champion, leading McLaren's resurgence.",
+    "image_url": "https://media.formula1.com/content/dam/fom-website/drivers/L/LANNOR01_Lando_Norris/lannor01.png.transform/2col/image.png",
+    "timeline": [
+      { "year": 2025, "event": "World Drivers' Champion", "type": "champion" },
+      { "year": 2024, "event": "Maiden Win in Miami", "type": "win" },
+      { "year": 2021, "event": "Heartbreak & Pole in Sochi", "type": "milestone" },
+      { "year": 2019, "event": "F1 Debut with McLaren", "type": "debut" }
+    ]
+  },
+  "LEC": {
+    "full_name": "Charles Leclerc",
+    "number": 16,
+    "nationality": "Monegasque",
+    "wdc_titles": 0,
+    "career_wins": 9,
+    "career_podiums": 42,
+    "bio": "The Prince of Monaco, Ferrari's home-grown superstar and qualifying master.",
+    "image_url": "https://media.formula1.com/content/dam/fom-website/drivers/C/CHALEC01_Charles_Leclerc/chalec01.png.transform/2col/image.png",
+    "timeline": [
+      { "year": 2024, "event": "Historic Home Win (Monaco)", "type": "win" },
+      { "year": 2019, "event": "First Wins (Spa & Monza)", "type": "win" },
+      { "year": 2018, "event": "Stellar Debut Season (Sauber)", "type": "debut" },
+      { "year": 2017, "event": "Dominant F2 Champion", "type": "milestone" }
+    ]
+  },
+  "PIA": {
+    "full_name": "Oscar Piastri",
+    "number": 81,
+    "nationality": "Australian",
+    "wdc_titles": 0,
+    "career_wins": 9,
+    "career_podiums": 28,
+    "bio": "Cool, calm, and clinical. The next big thing in Australian racing.",
+    "image_url": "https://media.formula1.com/content/dam/fom-website/drivers/O/OSCPIA01_Oscar_Piastri/oscpia01.png.transform/2col/image.png",
+    "timeline": [
+      { "year": 2025, "event": "Helped McLaren win WCC", "type": "milestone" },
+      { "year": 2024, "event": "Maiden Win (Hungary)", "type": "win" },
+      { "year": 2023, "event": "Controversial F1 Debut", "type": "debut" },
+      { "year": 2021, "event": "F2 Champion", "type": "milestone" }
+    ]
+  },
+  "RUS": {
+    "full_name": "George Russell",
+    "number": 63,
+    "nationality": "British",
+    "wdc_titles": 0,
+    "career_wins": 6,
+    "career_podiums": 26,
+    "bio": "Mercedes' future leader, known for incredible consistency and work ethic.",
+    "image_url": "https://media.formula1.com/content/dam/fom-website/drivers/G/GEORUS01_George_Russell/georus01.png.transform/2col/image.png",
+    "timeline": [
+      { "year": 2024, "event": "Lead Driver at Mercedes", "type": "milestone" },
+      { "year": 2022, "event": "Maiden Win (Brazil)", "type": "win" },
+      { "year": 2020, "event": "Heroic Sub for Hamilton (Sakhir)", "type": "milestone" },
+      { "year": 2019, "event": "F1 Debut with Williams", "type": "debut" }
+    ]
+  },
+  "SAI": {
+    "full_name": "Carlos Sainz",
+    "number": 55,
+    "nationality": "Spanish",
+    "wdc_titles": 0,
+    "career_wins": 4,
+    "career_podiums": 29,
+    "bio": "The 'Smooth Operator', a highly intelligent driver now leading Williams.",
+    "image_url": "https://media.formula1.com/content/dam/fom-website/drivers/C/CARSAI01_Carlos_Sainz/carsai01.png.transform/2col/image.png",
+    "timeline": [
+      { "year": 2025, "event": "New Chapter at Williams", "type": "move" },
+      { "year": 2024, "event": "Dominant Win in Australia", "type": "win" },
+      { "year": 2022, "event": "First Win & Pole (Silverstone)", "type": "win" },
+      { "year": 2015, "event": "F1 Debut with Toro Rosso", "type": "debut" }
+    ]
+  },
+  "ALO": {
+    "full_name": "Fernando Alonso",
+    "number": 14,
+    "nationality": "Spanish",
+    "wdc_titles": 2,
+    "career_wins": 32,
+    "career_podiums": 106,
+    "bio": "The ageless warrior, still competing at the highest level with Aston Martin.",
+    "image_url": "https://media.formula1.com/content/dam/fom-website/drivers/F/FERALO01_Fernando_Alonso/feralo01.png.transform/2col/image.png",
+    "timeline": [
+      { "year": 2023, "event": "Aston Martin Podium Streak", "type": "milestone" },
+      { "year": 2021, "event": "Return to F1 (Alpine)", "type": "move" },
+      { "year": 2006, "event": "Double World Champion", "type": "champion" },
+      { "year": 2001, "event": "F1 Debut (Minardi)", "type": "debut" }
+    ]
+  },
+  "PER": {
+    "full_name": "Sergio Perez",
+    "number": 11,
+    "nationality": "Mexican",
+    "wdc_titles": 0,
+    "career_wins": 6,
+    "career_podiums": 39,
+    "bio": "The 'Minister of Defence', renowned for his exceptional tyre management.",
+    "image_url": "https://media.formula1.com/content/dam/fom-website/drivers/S/SERPER01_Sergio_Perez/serper01.png.transform/2col/image.png",
+    "timeline": [
+      { "year": 2023, "event": "Vice-World Champion", "type": "milestone" },
+      { "year": 2021, "event": "Red Bull Move & Baku Win", "type": "win" },
+      { "year": 2020, "event": "Maiden Win (Sakhir)", "type": "win" },
+      { "year": 2011, "event": "F1 Debut with Sauber", "type": "debut" }
+    ]
+  },
+  "RIC": {
+    "full_name": "Daniel Ricciardo",
+    "number": 3,
+    "nationality": "Australian",
+    "wdc_titles": 0,
+    "career_wins": 8,
+    "career_podiums": 32,
+    "bio": "The 'Honey Badger', loved for his late braking and infectious smile.",
+    "image_url": "https://media.formula1.com/content/dam/fom-website/drivers/D/DANRIC01_Daniel_Ricciardo/danric01.png.transform/2col/image.png",
+    "timeline": [
+      { "year": 2024, "event": "Full Return with RB", "type": "milestone" },
+      { "year": 2021, "event": "Legendary Monza Win", "type": "win" },
+      { "year": 2014, "event": "Breakout Year at Red Bull", "type": "win" },
+      { "year": 2011, "event": "F1 Debut (HRT)", "type": "debut" }
+    ]
+  }
+}

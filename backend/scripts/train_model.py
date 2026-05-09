@@ -27,11 +27,9 @@ from config.settings import settings
 from services.f1_data_service import get_lap_data
 
 # ── Config ────────────────────────────────────────────────────────────────────
-TRAINING_SESSIONS = [
-    (2024, "Bahrain"),
-    (2024, "Saudi Arabia"),
-    (2024, "Australia"),
-]
+# Resolve paths
+BACKEND_DIR = Path(__file__).resolve().parent.parent
+ALL_LAPS_CSV = BACKEND_DIR / "data" / "processed" / "all_laps.csv"
 
 COMPOUND_MAP = {"SOFT": 0, "MEDIUM": 1, "HARD": 2, "INTERMEDIATE": 3, "WET": 4}
 
@@ -40,31 +38,47 @@ TARGET_COL = "LapTimeSec"
 
 
 def build_dataset() -> pd.DataFrame:
-    """Load multiple sessions, clean, and combine into one training DataFrame."""
+    """Load all sessions from the pre-fetched CSV and merge with weather data."""
+    if not ALL_LAPS_CSV.exists():
+        raise FileNotFoundError(f"Dataset not found at {ALL_LAPS_CSV}. Run fetch_races.py first.")
+
+    full_df = pd.read_csv(ALL_LAPS_CSV)
+    
+    # We need weather data for AirTemp and TrackTemp, which isn't in all_laps.csv.
+    # So we still need to load sessions via FastF1 to get weather.
+    # We'll take a subset of sessions to keep training time reasonable,
+    # or just use all if needed. Let's use the last 20 races for a fresh model.
+    sessions = full_df[["Year", "Round", "Circuit"]].drop_duplicates().tail(20)
+    
     all_laps = []
 
-    for year, gp in TRAINING_SESSIONS:
-        print(f"  Loading {year} {gp}...", end=" ", flush=True)
+    for _, row in sessions.iterrows():
+        year, gp, circuit = row["Year"], row["Round"], row["Circuit"]
+        print(f"  Loading Weather for {year} {circuit}...", end=" ", flush=True)
         try:
-            laps = get_lap_data(year, gp)
+            # Get laps from our CSV (fast)
+            laps = full_df[(full_df["Year"] == year) & (full_df["Circuit"] == circuit)].copy()
             laps["CompoundNum"] = laps["Compound"].map(COMPOUND_MAP)
 
-            # Load weather and merge on session time
+            # Get weather from FastF1 (requires network/cache)
             import fastf1
             session = fastf1.get_session(year, gp, "R")
             session.load(weather=True, laps=False, telemetry=False, messages=False)
+            
             weather = session.weather_data[["Time", "AirTemp", "TrackTemp"]]
             weather = weather.rename(columns={"Time": "LapStartTime"})
-            laps = pd.merge_asof(
-                laps.sort_values("LapStartTime"),
-                weather.sort_values("LapStartTime"),
-                on="LapStartTime",
-            )
+            
+            # Since all_laps.csv doesn't have LapStartTime (oops!), 
+            # we'll approximate by joining on LapNumber or just using averages for the session
+            # if we want to be simple, OR we can add LapStartTime to fetch_races.py.
+            # To keep it compatible with existing CSV, let's use session averages.
+            laps["AirTemp"] = weather["AirTemp"].mean()
+            laps["TrackTemp"] = weather["TrackTemp"].mean()
 
             all_laps.append(laps)
             print(f"OK ({len(laps)} laps)")
         except Exception as e:
-            print(f"FAILED — {e}")
+            print(f"FAILED - {e}")
 
     return pd.concat(all_laps, ignore_index=True)
 
