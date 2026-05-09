@@ -39,6 +39,7 @@ import { ComparisonPage }   from "./pages/ComparisonPage.jsx";
 import { PitWallPage }     from "./pages/PitWallPage.jsx";
 import { PredictorPage }   from "./pages/PredictorPage.jsx";
 import { StandingsPage }   from "./pages/StandingsPage.jsx";
+import { SettingsPage }    from "./pages/SettingsPage.jsx";
 import "./App.css";
 
 function App() {
@@ -119,6 +120,9 @@ function App() {
 
             {/* Route 9 — Season Standings */}
             <Route path="/standings"      element={<StandingsPage />} />
+
+            {/* Route 10 — System Settings */}
+            <Route path="/settings"       element={<SettingsPage />} />
 
             {/* Catch-all: redirect any unknown URL back to home */}
             <Route path="*"               element={<Navigate to="/" replace />} />

@@ -26,6 +26,7 @@ const NAV_ITEMS = [
   { path: "/predictor",     label: "Predictor",     icon: <Trophy size={20} /> },
   { path: "/pit-wall",      label: "Pit Wall",      icon: <Radio size={20} /> },
   { path: "/standings",     label: "Standings",     icon: <Trophy size={20} /> },
+  { path: "/settings",      label: "Settings",      icon: <Settings size={20} /> },
 ];
 
 export function Sidebar({ isOpen, onClose, isPersistent }) {
