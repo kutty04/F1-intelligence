@@ -33,6 +33,7 @@ class Settings(BaseSettings):
         "http://localhost:5174",
         "http://localhost:5175",
         "http://localhost:3000",
+        "https://f1-intelligence-seven.vercel.app",
     ]
 
     # ── FastF1 ────────────────────────────────────────────────
