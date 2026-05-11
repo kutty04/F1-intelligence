@@ -8,7 +8,7 @@ The single source of truth for loading F1 data.
 import fastf1
 import pandas as pd
 from pathlib import Path
-from backend.config.settings import settings
+from ..config.settings import settings
 
 
 def _ensure_cache() -> None:

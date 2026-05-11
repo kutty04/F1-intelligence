@@ -23,9 +23,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 if str(BASE_DIR) not in sys.path:
     sys.path.append(str(BASE_DIR))
 
-# Now we can safely import from the backend package
-from backend.config.settings import settings
-from backend.api.routers import sessions, laps, predictions, analytics
+# Now we can safely import using relative paths
+from ..config.settings import settings
+from .routers import sessions, laps, predictions, analytics
 
 # ── Create App ────────────────────────────────────────────────────────────────
 app = FastAPI(
