@@ -42,6 +42,11 @@ fastf1_cache/
 backend/data/raw/*
 backend/data/processed/*
 backend/data/exports/*
+
+# Exceptions for the Intelligence Engine (Season 3)
+!backend/data/processed/all_laps.csv
+!backend/data/processed/grid_win_stats.csv
+
 # Keep the folders tracked (via .gitkeep)
 !backend/data/raw/.gitkeep
 !backend/data/processed/.gitkeep
@@ -52,6 +57,9 @@ backend/data/exports/*
 # (e.g., MLflow, HuggingFace Hub) rather than Git.
 backend/models/trained/*.pkl
 backend/models/trained/*.joblib
+
+# Exception for the Lap Time Predictor
+!backend/models/trained/lap_time_predictor.pkl
 !backend/models/trained/.gitkeep
 
 # ── pytest ────────────────────────────────────────────────────
