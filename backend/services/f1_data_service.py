@@ -2,11 +2,7 @@
 services/f1_data_service.py
 ----------------------------
 The single source of truth for loading F1 data.
-Every script, API route, and ML pipeline should call THIS service —
-never call FastF1 directly from routes or scripts.
-
-Why?  If FastF1's API changes, you only update ONE file.
-      This is called the "Service Layer" pattern.
+[PRODUCTION UPDATE: Absolute Import Path Migration 2026]
 """
 
 import fastf1
