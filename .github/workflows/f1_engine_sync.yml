@@ -1,0 +1,41 @@
+name: F1 Engine Sync (Season 3)
+
+on:
+  schedule:
+    - cron: '0 8 * * 1' # Every Monday morning
+  workflow_dispatch: # Manual trigger
+
+jobs:
+  intelligence-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🏎️ Checkout Pit Wall
+        uses: actions/checkout@v4
+
+      - name: 🐍 Prepare Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: 🛠️ Install Requirements
+        run: pip install -r backend/requirements.txt
+
+      - name: 📡 Fetch New Race Data
+        run: python backend/scripts/fetch_races.py
+        env:
+          FASTF1_CACHE_DIR: ./cache
+
+      - name: 📊 Run Grid Intelligence
+        run: python backend/scripts/analyze_grid.py
+
+      - name: 🧠 Train AI Predictor
+        run: python backend/scripts/train_model.py
+
+      - name: 🚀 Deploy Intelligence to GitHub
+        run: |
+          git config --global user.name 'F1 Intelligence Bot'
+          git config --global user.email 'bot@f1-intelligence.ai'
+          git add backend/data/processed/*.csv backend/models/trained/*.pkl
+          git commit -m "Race Update: $(date +'%Y-%m-%d') | AI Model Re-trained" || echo "No changes to commit"
+          git push
