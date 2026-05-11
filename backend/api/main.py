@@ -16,8 +16,8 @@ Run with:
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from config.settings import settings
-from api.routers import sessions, laps, predictions, analytics
+from backend.config.settings import settings
+from backend.api.routers import sessions, laps, predictions, analytics
 
 # ── Create App ────────────────────────────────────────────────────────────────
 app = FastAPI(

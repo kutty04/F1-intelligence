@@ -12,7 +12,7 @@ Why?  If FastF1's API changes, you only update ONE file.
 import fastf1
 import pandas as pd
 from pathlib import Path
-from config.settings import settings
+from backend.config.settings import settings
 
 
 def _ensure_cache() -> None:
