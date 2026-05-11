@@ -13,8 +13,8 @@ import joblib
 import numpy as np
 import pandas as pd
 from pathlib import Path
-from ..config.settings import settings
-from ..api.schemas.prediction_schemas import LapTimePredictionRequest
+from backend.config.settings import settings
+from backend.api.schemas.prediction_schemas import LapTimePredictionRequest
 
 # Compound → numeric encoding (ordinal: SOFT degrades fastest = 0)
 COMPOUND_MAP = {
