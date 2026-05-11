@@ -23,8 +23,8 @@ from pathlib import Path
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error
-from config.settings import settings
-from services.f1_data_service import get_lap_data
+from backend.config.settings import settings
+from backend.services.f1_data_service import get_lap_data
 
 # ── Config ────────────────────────────────────────────────────────────────────
 # Resolve paths
