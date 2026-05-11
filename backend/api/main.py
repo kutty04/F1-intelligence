@@ -13,9 +13,17 @@ Run with:
     uvicorn api.main:app --reload --port 8000
 """
 
+import sys
+from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+# Add project root to sys.path so both 'backend' and 'api' styles work
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+if str(BASE_DIR) not in sys.path:
+    sys.path.append(str(BASE_DIR))
+
+# Now we can safely import from the backend package
 from backend.config.settings import settings
 from backend.api.routers import sessions, laps, predictions, analytics
 
