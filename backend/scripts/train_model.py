@@ -17,12 +17,20 @@ Usage:
     python -m scripts.train_model
 """
 
+import sys
+from pathlib import Path
+# Add the project root to sys.path so 'backend' is discoverable
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.append(str(PROJECT_ROOT))
+
 import joblib
 import pandas as pd
-from pathlib import Path
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error
+
+# Now we can import from backend
 from backend.config.settings import settings
 from backend.services.f1_data_service import get_lap_data
 

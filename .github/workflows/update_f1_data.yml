@@ -41,6 +41,6 @@ jobs:
         run: |
           git config --global user.name 'F1 Data Bot'
           git config --global user.email 'bot@f1-intelligence.local'
-          git add backend/data/processed/*.csv backend/models/*.joblib
+          git add backend/data/processed/*.csv backend/models/trained/*.pkl
           git commit -m "Automated data update: $(date +'%Y-%m-%d')" || echo "No changes to commit"
           git push
