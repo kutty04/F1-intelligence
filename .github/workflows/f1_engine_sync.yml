@@ -36,6 +36,6 @@ jobs:
         run: |
           git config --global user.name 'F1 Intelligence Bot'
           git config --global user.email 'bot@f1-intelligence.ai'
-          git add backend/data/processed/*.csv backend/models/trained/*.pkl
+          git add -f backend/data/processed/*.csv backend/models/trained/*.pkl
           git commit -m "Race Update: $(date +'%Y-%m-%d') | AI Model Re-trained" || echo "No changes to commit"
           git push
