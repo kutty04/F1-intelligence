@@ -223,15 +223,22 @@ def load_race_laps(year: int, round_number: int, event_name: str) -> pd.DataFram
         session = fastf1.get_session(year, round_number, "R")
 
         # ── Step 2: Load session data ──────────────────────────────────────
-        # session.load() is the actual network/cache call.
-        #
-        # laps=True      → We NEED lap timing data (that's our goal)
-        # telemetry=False→ SKIP per-sample car data (speed/throttle/brake)
-        #                  Telemetry adds ~50MB per session and slows
-        #                  loading by 10x. We don't need it for lap CSVs.
-        # weather=False  → Skip weather (we can add it later if needed)
-        # messages=False → Skip radio/status messages
-        session.load(laps=True, telemetry=False, weather=False, messages=False)
+        # We add a retry mechanism for session loading to handle intermittent
+        # network issues or temporary API rate limit hits.
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                # session.load() is the actual network/cache call.
+                # laps=True      → We NEED lap timing data (that's our goal)
+                # telemetry=False→ SKIP per-sample car data (speed/throttle/brake)
+                session.load(laps=True, telemetry=False, weather=False, messages=False)
+                break 
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    log.warning(f"  Retry {attempt+1}/{max_retries} for {event_name}: {e}")
+                    time.sleep(5)
+                else:
+                    raise e
 
         # ── Step 3: Get the laps DataFrame ────────────────────────────────
         # session.laps is a Pandas DataFrame.
@@ -353,6 +360,9 @@ def fetch_all_seasons() -> pd.DataFrame:
 
             # Load and clean the laps for this one race
             laps_df = load_race_laps(year, round_number, event_name)
+            
+            # Rate limiting: wait 2 seconds between races to avoid 500 calls/h limit
+            time.sleep(2)
 
             if laps_df is not None:
                 all_lap_frames.append(laps_df)  # Add to our accumulator
