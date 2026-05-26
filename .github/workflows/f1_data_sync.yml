@@ -1,0 +1,95 @@
+﻿name: F1 Data Sync
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'  # Every Monday 06:00 UTC (after Sunday race)
+  workflow_dispatch:       # Manual trigger anytime
+
+permissions:
+  contents: write          # Required to push updated data back to repo
+
+jobs:
+  sync-f1-data:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          lfs: true
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Fetch Current Season Data (2026)
+        env:
+          PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/backend
+          FASTF1_CACHE_DIR: ${{ github.workspace }}/cache
+        run: |
+          mkdir -p cache
+          python backend/scripts/fetch_races.py
+
+      - name: Analyze Grid Intelligence
+        env:
+          PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/backend
+        run: python backend/scripts/analyze_grid.py
+
+      - name: Retrain AI Predictor
+        env:
+          PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/backend
+        run: python backend/scripts/train_model.py
+
+      - name: Commit Updated Data & Model
+        run: |
+          git config --global user.name "F1 Data Sync Bot"
+          git config --global user.email "f1-sync-bot@github-actions"
+          git add backend/data/processed/all_laps.csv \
+                  backend/data/processed/grid_win_stats.csv \
+                  backend/models/trained/lap_time_predictor.pkl
+          git diff --cached --quiet && echo "No changes to commit." || \
+            git commit -m "chore(data): sync F1 2026 data - $(date +'%Y-%m-%d')"
+          git push
+
+      - name: Deploy to Hugging Face Spaces
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          pip install huggingface_hub
+          python - <<'PYEOF'
+          import os
+          from huggingface_hub import HfApi
+
+          api = HfApi()
+          token = os.environ["HF_TOKEN"]
+          repo_id = "Maddy018/f1-intelligence"
+
+          # Upload updated data files
+          files_to_upload = [
+              ("backend/data/processed/all_laps.csv",              "backend/data/processed/all_laps.csv"),
+              ("backend/data/processed/grid_win_stats.csv",        "backend/data/processed/grid_win_stats.csv"),
+              ("backend/models/trained/lap_time_predictor.pkl",    "backend/models/trained/lap_time_predictor.pkl"),
+          ]
+
+          for local_path, repo_path in files_to_upload:
+              if os.path.exists(local_path):
+                  api.upload_file(
+                      path_or_fileobj=local_path,
+                      path_in_repo=repo_path,
+                      repo_id=repo_id,
+                      repo_type="space",
+                      token=token,
+                      commit_message=f"sync: update {repo_path}",
+                  )
+                  print(f"Uploaded: {local_path} -> {repo_path}")
+              else:
+                  print(f"Skipped (not found): {local_path}")
+          PYEOF
