@@ -86,12 +86,14 @@ export function DashboardPage() {
 
       {/* ── Page header ──────────────────────────────────────────────── */}
       <div style={styles.header}>
-        <div style={{ display: "flex", alignItems: "center", gap: "32px" }}>
-          <div>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: "16px", flexWrap: "wrap", width: "100%" }}>
+          <div style={{ minWidth: 0, flex: "1 1 auto" }}>
             <h1 style={styles.title}>Race Dashboard</h1>
             <p style={styles.subtitle}>Lap-by-lap analysis and key statistics</p>
           </div>
-          <WeatherStation year={year} gp={gp} />
+          <div style={{ flexShrink: 0, maxWidth: "100%", overflowX: "auto" }}>
+            <WeatherStation year={year} gp={gp} />
+          </div>
         </div>
 
         {/* Race selector controls */}
@@ -107,7 +109,7 @@ export function DashboardPage() {
           <select
             value={gp}
             onChange={(e) => setGp(e.target.value)}
-            style={styles.select}
+            style={{ ...styles.select, flex: 1, minWidth: 0 }}
           >
             {availableGps.map((g) => <option key={g} value={g}>{g}</option>)}
           </select>
@@ -121,7 +123,8 @@ export function DashboardPage() {
               color: "#fff", 
               fontWeight: 700,
               border: "none",
-              padding: "8px 16px"
+              padding: "8px 16px",
+              flexShrink: 0,
             }}
           >
             {refreshing ? "Refreshing..." : "Refresh Data"}
@@ -195,19 +198,19 @@ export function DashboardPage() {
 }
 
 const styles = {
-  page:       { padding: "32px", maxWidth: "1200px", margin: "0 auto" },
+  page:       { padding: "clamp(12px, 3vw, 32px)", maxWidth: "1200px", margin: "0 auto", boxSizing: "border-box", width: "100%", overflowX: "hidden" },
   header:     { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "28px", flexWrap: "wrap", gap: "16px" },
-  title:      { margin: 0, fontSize: "28px", fontWeight: 700, color: "#f0f0f0" },
-  subtitle:   { margin: "6px 0 0", color: "#777", fontSize: "14px" },
-  selectors:  { display: "flex", gap: "10px" },
-  select:     { padding: "8px 12px", backgroundColor: "#1a1a2e", color: "#ccc", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", fontSize: "14px", cursor: "pointer" },
+  title:      { margin: 0, fontSize: "clamp(18px, 5vw, 28px)", fontWeight: 700, color: "#f0f0f0" },
+  subtitle:   { margin: "6px 0 0", color: "#777", fontSize: "clamp(12px, 3vw, 14px)" },
+  selectors:  { display: "flex", gap: "10px", flexWrap: "wrap", width: "100%" },
+  select:     { padding: "8px 12px", backgroundColor: "#1a1a2e", color: "#ccc", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", fontSize: "14px", cursor: "pointer", minWidth: 0 },
   kpiRow:     { display: "flex", gap: "16px", marginBottom: "28px", flexWrap: "wrap" },
-  chartCard:  { backgroundColor: "#1a1a2e", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.07)", padding: "24px" },
-  chartTitle: { margin: "0 0 4px", fontSize: "18px", fontWeight: 600, color: "#f0f0f0" },
+  chartCard:  { backgroundColor: "#1a1a2e", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.07)", padding: "clamp(12px, 3vw, 24px)" },
+  chartTitle: { margin: "0 0 4px", fontSize: "clamp(14px, 3.5vw, 18px)", fontWeight: 600, color: "#f0f0f0" },
   chartSub:   { margin: "0 0 20px", color: "#777", fontSize: "13px" },
   analysisGrid: {
     display: "grid",
-    gridTemplateColumns: "1.5fr 1fr",
+    gridTemplateColumns: "minmax(0, 1.5fr) minmax(0, 1fr)",
     gap: "24px",
     alignItems: "start"
   },

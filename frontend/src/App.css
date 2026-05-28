@@ -235,21 +235,22 @@ body {
   .main-content {
     padding: 24px 20px;
   }
+
+  /* Dashboard analysis grid: collapse on tablet */
+  [style*="gridTemplateColumns"],
+  [style*="grid-template-columns"] {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 /* ── 768px — Tablet portrait ────────────────────────────────── */
 @media (max-width: 768px) {
-  /* App shell: sidebar hides, main takes full width */
+  /* App shell: main takes full width on mobile (sidebar conditionally rendered via JSX) */
   .app-shell {
     flex-direction: column;
     height: auto;
     min-height: 100vh;
     overflow-x: hidden;
-  }
-
-  /* Hide persistent sidebar on mobile (handled by Sidebar component internally) */
-  .app-shell > *:first-child {
-    display: none;
   }
 
   .main-container {

@@ -47,6 +47,29 @@ function App() {
   const [isAiOpen, setIsAiOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isTrackMode, setIsTrackMode] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  // Track viewport width for responsive sidebar behavior
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+      // Close overlay sidebar when switching to desktop
+      if (!mobile) setIsSidebarOpen(false);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Lock body scroll when mobile sidebar is open
+  useEffect(() => {
+    if (isMobile && isSidebarOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [isMobile, isSidebarOpen]);
 
   // Force Browser Tab Title
   useEffect(() => {
@@ -77,15 +100,28 @@ function App() {
   return (
     <BrowserRouter>
       <div className="app-shell">
-        <Sidebar isOpen={true} onClose={() => {}} isPersistent={true} />
+        {/* Desktop: persistent sidebar (hidden via CSS on mobile) */}
+        {!isMobile && (
+          <Sidebar isOpen={true} onClose={() => {}} isPersistent={true} />
+        )}
+
+        {/* Mobile: overlay sidebar triggered by hamburger */}
+        {isMobile && (
+          <Sidebar
+            isOpen={isSidebarOpen}
+            onClose={() => setIsSidebarOpen(false)}
+            isPersistent={false}
+          />
+        )}
         
         <div className="main-container">
           <TopBar 
-            onMenuClick={() => {}}
+            onMenuClick={() => setIsSidebarOpen(prev => !prev)}
             onSearchClick={() => setIsSearchOpen(true)}
             onAiClick={() => setIsAiOpen(true)}
             isTrackMode={isTrackMode}
             onTrackModeToggle={() => setIsTrackMode(!isTrackMode)}
+            isMobile={isMobile}
           />
 
           <StrategistDrawer isOpen={isAiOpen} onClose={() => setIsAiOpen(false)} />
